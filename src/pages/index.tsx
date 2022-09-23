@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { HomeContainer, Product } from "./styles/pages/home";
+import { HomeContainer, Product } from "./../styles/pages/home";
 
 
 import { useKeenSlider } from "keen-slider/react";
