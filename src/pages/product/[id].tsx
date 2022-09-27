@@ -4,6 +4,8 @@ import { stripe } from "../../lib/stripe"
 import { ImageContainer, ProductContainer, ProductDetails } from "../../styles/pages/pages"
 import Image from "next/image"
 import { useRouter } from "next/router"
+import axios from "axios"
+import { useState } from "react"
 
 interface ProductProps {
     product: {
@@ -12,10 +14,37 @@ interface ProductProps {
         name: string;
         image: string;
         description: string;
+        defaultPriceId: string;
     }
 }
 
-export default function Products({product}: ProductProps) {
+export default function Products({product}: ProductProps) { 
+    const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] = useState(false)
+
+    async function handleBuyProduct(){
+
+        try {
+            setIsCreatingCheckoutSession(true)
+
+            const response = await axios.post('/api/checkout', {
+                priceId : product.defaultPriceId,
+            })
+
+            const {checkoutUrl} = response.data
+
+            window.location.href = checkoutUrl //se for para uma rota externa, estamos redicionando para o stripe, stripe não é aplicação nossa, é rota externa
+            //se eu quiser redirecionar o usuario a uma rota interna, ou seja uma rota que eu criei, eu uso o router do next
+            //
+
+        } catch (error) {
+            setIsCreatingCheckoutSession(false)
+            alert('Falha ao direcionar checkout')
+
+        }
+     
+    }
+
+
     const { isFallback } = useRouter()
 
     if (isFallback) {
@@ -33,7 +62,10 @@ export default function Products({product}: ProductProps) {
                 <span>{product.price} </span>
                 <p>{product.description} </p>
 
-                <button>Comprar Agora</button>
+                <button disabled={isCreatingCheckoutSession}
+                onClick={handleBuyProduct}
+                >Comprar Agora
+                </button>
             </ProductDetails>
         </ProductContainer>
     )
@@ -42,7 +74,7 @@ export default function Products({product}: ProductProps) {
  export const getStaticPaths: GetStaticPaths = async() =>{
     return{
         paths: [
-            { params : {id: ''}}
+            { params : {id:'prod_MTvzZvDMoFOVVi'}}
         ],
         fallback: true,
     }
@@ -68,7 +100,8 @@ export default function Products({product}: ProductProps) {
                     style: 'currency',
                     currency: 'BRL',
                 }).format(price.unit_amount / 100),
-                description: product.description
+                description: product.description,
+                defaultPriceId: price.id,
             }
         },
         revalidate: 60 * 60 * 1 // 1 hour
