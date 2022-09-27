@@ -1,4 +1,4 @@
-import { cursorTo } from "readline";
+
 import { styled } from "..";
 
 export const HomeContainer = styled('main', {
@@ -48,6 +48,7 @@ export const Product = styled('a', {
 
         strong: {
             fontSize: '$lg',
+            color: '$gray-100',
         },
 
         span: {

@@ -7,11 +7,12 @@ import "keen-slider/keen-slider.min.css";
 import { stripe } from "../lib/stripe";
 import { GetServerSideProps, GetStaticProps } from "next";
 import Stripe from "stripe";
+import Link from "next/link";
 
 interface HomeProps {
   products: {
     id: string;
-    price: number;
+    price: string;
     name: string;
     image: string;
   }[];
@@ -29,6 +30,7 @@ export default function Home({ products }: HomeProps) {
     <HomeContainer ref={sliderRef}>
       {products.map((product) => {
         return (
+        <Link href={`/product/${product.id}`} key={product.id} prefetch={false }>
           <Product key={product.id} className="keen-slider__slide">
             <Image src={product.image} width={520} height={480} alt="" />
 
@@ -37,6 +39,7 @@ export default function Home({ products }: HomeProps) {
               <span> {product.price}</span>
             </footer>
           </Product>
+        </Link>
         );
       })}
     </HomeContainer>
@@ -56,13 +59,17 @@ export const getStaticProps: GetStaticProps = async () => {
       id: product.id,
       name: product.name,
       image: product.images[0],
-      price: price.unit_amount / 100,
-    };
+      price: new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(price.unit_amount / 100),
+      }
   });
 
   return {
     props: {
       products,
     },
+    revalidate: 60 * 60 * 2, // 2 hours
   };
 };
